@@ -58,7 +58,7 @@ export async function getStaticPaths() {
 
   return {
     paths: allPostsWithSlug.edges.map(({ node }) => `/blog/${node.slug}`) || [],
-    fallback: true
+    fallback: false
   };
 };
 
