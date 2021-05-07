@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import { getAllPostsWithSlug, getPost } from '../../lib/api';
+import { getAllPostsWithSlug, getPost, getPostByDatabaseID } from '../../lib/api';
 import styles from '../../styles/Home.module.css';
 import blogStyles from '../../styles/Blog.module.css';
 
@@ -10,20 +10,32 @@ const formatDate = date => {
   return `${newDate.getMonth() + 1}/${newDate.getDate()}/${newDate.getFullYear()}`;
 }
 
-const Post = ({ postData }) => {
+const Post = ({ preview, postData }) => {
   const router = useRouter();
 
-  if (!router.isFallback && !postData?.slug) {
+  console.log({
+    preview,
+    postData,
+    isFallback: router.isFallback
+  })
+
+  if (!router.isFallback && !postData?.slug && !preview) {
     return <p>Looks like an error....</p>;
   }
 
   // TODO: replace postData.content img src urls w/ API_URL endpoint
   return (
-    <div className={styles.container}>
+    <div className={styles.container}>      
       <Head>
         <title>{postData.title}</title>
         <link rel='icon' href='/favicon.ico' />
       </Head>
+      { preview && (
+        <div className={blogStyles.previewAlert}>
+          <p>You are viewing a preview of this draft post.</p>
+          <a href='/api/exit-preview'>Exit Preview</a>
+        </div>
+      ) }
       <main className={styles.main}>
         {
           router.isFallback 
@@ -55,11 +67,10 @@ export default Post;
 
 export async function getStaticPaths() {
   const allPostsWithSlug = await getAllPostsWithSlug();
-  const allSlugs = allPostsWithSlug.edges.map(({ node }) => node.slug);
 
   return {
     paths: allPostsWithSlug.edges.map(({ node }) => `/blog/${node.slug}`) || [],
-    fallback: false
+    fallback: true
   };
 };
 
@@ -67,11 +78,20 @@ export async function getStaticProps({ params, preview = false, previewData }) {
   console.log({
     preview,
     previewData
-  })
-  const data = await getPost(params.slug);
+  });
+
+  let data;
+  
+  if (preview) {
+    const { draftPostID, refreshToken } = previewData;
+    data = await getPostByDatabaseID(draftPostID, refreshToken);
+  } else {
+    data = await getPost(params.slug);
+  }  
 
   return {
     props: {
+      preview,
       postData: data.post
     }
   };
