@@ -56,7 +56,6 @@ export default Post;
 export async function getStaticPaths() {
   const allPostsWithSlug = await getAllPostsWithSlug();
   const allSlugs = allPostsWithSlug.edges.map(({ node }) => node.slug);
-  console.log({allSlugs});
 
   return {
     paths: allPostsWithSlug.edges.map(({ node }) => `/blog/${node.slug}`) || [],
@@ -64,7 +63,11 @@ export async function getStaticPaths() {
   };
 };
 
-export async function getStaticProps({ params }) {
+export async function getStaticProps({ params, preview = false, previewData }) {
+  console.log({
+    preview,
+    previewData
+  })
   const data = await getPost(params.slug);
 
   return {

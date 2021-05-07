@@ -6,7 +6,7 @@ import blogStyles from '../../styles/Blog.module.css';
 
 const Blog = ({ allPosts }) => {
   const { edges } = allPosts;
-  console.log(edges)
+
   return (
     <div className={styles.container}>
       <Head>
@@ -14,6 +14,9 @@ const Blog = ({ allPosts }) => {
         <link rel='icon' href='/favicon.ico' />
       </Head>
       <main className={styles.main}>
+        <Link href='/'>
+          <a className={blogStyles.backLink}>🔙 Back to homepage</a>
+        </Link>
         <h1 className={styles.title}>Latest blog articles</h1>
         <hr />
         <section>
@@ -48,6 +51,7 @@ export async function getStaticProps() {
   return {
     props: {
       allPosts
-    }
+    },
+    revalidate: 1,
   };
 };
